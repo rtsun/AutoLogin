@@ -1,5 +1,4 @@
-# For my roommate Kang(抗
-# 每天登录还有爱心币送
+# For my roommate Kang
 
 import requests
 import re
@@ -9,6 +8,7 @@ import logging
 import subprocess
 import http.cookiejar
 from urllib.parse import urljoin
+from config import account
 
 loginUrl = 'http://aixinwu.sjtu.edu.cn/index.php/login'
 captUrl = 'https://jaccount.sjtu.edu.cn/jaccount/captcha?'
@@ -18,7 +18,7 @@ currentPath = os.path.dirname(os.path.abspath(__file__))
 accountPath = os.path.join(currentPath, "account.dat")
 cookiesPath = os.path.join(currentPath, "aixinwu.cookies")
 logfilePath = os.path.join(currentPath, "aixinwu.log")
-captPath = os.path.join(currentPath, "captcha.jpg")
+captPath = os.path.join(currentPath, "captcha.png")
 
 
 def checkNetwork(address):
@@ -39,9 +39,8 @@ class SJTUer(object):
             'User-Agent': 'Mozilla/5.0 (X11; Linux x86_64) Gecko/20100101 Firefox/51.0'}
         self.s = requests.session()
         self.s.headers.update(self.headers)
-        self.usr = ''
-        self.psw = ''
-        self.get_account()
+        self.usr = account['username']
+        self.psw = account['password']
 
     def login_by_cookies(self):
         if os.path.exists(cookiesPath):
@@ -60,9 +59,6 @@ class SJTUer(object):
             return 1
 
     def save_cookies(self, cookies):
-        """
-        No need to change cookies, it seems.
-        """
         save_cj = http.cookiejar.LWPCookieJar()
         save_ck = {c.name: c.value for c in cookies}
         requests.utils.cookiejar_from_dict(save_ck, save_cj)
@@ -137,12 +133,6 @@ class SJTUer(object):
         with open(captPath, "wb") as f:
             f.write(self.s.get(url).content)
 
-    def get_account(self):
-        with open(accountPath, 'r') as f:
-            account = f.readlines()
-            self.usr = account[0].strip()
-            self.psw = account[1].strip()
-
 
 logging.basicConfig(filename=logfilePath, level='DEBUG')
 date = time.strftime('%Y-%m-%d %H:%M:%S', time.localtime(time.time()))
@@ -151,9 +141,9 @@ logging.info("===============Log Started at " + date + "===============")
 sjtuer = SJTUer()
 if sjtuer.login_by_cookies() == 1:
     print("Login by cookies successfully!")
-    logging.info("=============Login by cookies successfully at " + date + "=============")
+    logging.info("=============Login by cookies successfully at %s =============" % date)
 elif sjtuer.login() == 1:
     print('Login successfully!')
-    logging.info("=============Login successfully at " + date + "=============")
+    logging.info("=============Login successfully at %s =============" % date)
 else:
     os._exit(0)
